@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { RequireAuth } from './RequireAuth';
 import { AdminLayout } from '../components/layout/AdminLayout';
 import { PublicLayout } from '../components/layout/PublicLayout';
 import { AboutPage } from '../pages/public/AboutPage';
@@ -55,7 +56,11 @@ export const router = createBrowserRouter([
   { path: '/admin/login', element: <LoginPage /> },
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <RequireAuth>
+        <AdminLayout />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <DashboardOverviewPage /> },
       ...adminPages.map(([path, title, description]) => ({

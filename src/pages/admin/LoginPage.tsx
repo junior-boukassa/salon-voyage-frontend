@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -16,15 +16,22 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/admin';
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({ resolver: zodResolver(loginSchema), defaultValues: { email: 'admin@salon.cd' } });
 
   const onSubmit = async (data: LoginForm) => {
-    await authService.login(data.email, data.password);
-    navigate('/admin');
+    try {
+      await authService.login(data.email, data.password);
+      navigate(from, { replace: true });
+    } catch {
+      setError('root', { message: 'Connexion impossible. Vérifiez vos identifiants.' });
+    }
   };
 
   return (
@@ -38,6 +45,7 @@ export function LoginPage() {
         <div className="mt-6 grid gap-4">
           <Input label="Email" type="email" registration={register('email')} error={errors.email?.message} />
           <Input label="Mot de passe" type="password" registration={register('password')} error={errors.password?.message} />
+          {errors.root?.message && <p className="text-sm font-semibold text-red-600">{errors.root.message}</p>}
           <Button disabled={isSubmitting}>Se connecter</Button>
         </div>
       </form>
